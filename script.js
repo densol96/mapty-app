@@ -72,18 +72,19 @@ class App {
     #mapZoom = 13;
     #mapEvent;
     #workouts = [];
+    #popUpCash = {}
 
     constructor() {
         // Get user's position
         this.#getPosition();
         // Get data from local storage
-        // this.reset();
         this.#getLocalStorage();
 
         // Attach event handlers
         form.addEventListener("submit", this.#newWorkout.bind(this));
         inputType.addEventListener("change", this.#togleElevationField);
         containerWorkouts.addEventListener("click", this.#moveToPopUp.bind(this));
+        containerWorkouts.addEventListener("click", this.#removeRecord.bind(this));
     }
 
     #getPosition() {
@@ -168,10 +169,12 @@ class App {
             className: `${workout.type === 'cycling' ? 'cycling' : 'running'}-popup`
         }
 
-        L.marker(workout.coords).addTo(this.#map)
-            .bindPopup(L.popup(popupOptions))
+        const marker = L.marker(workout.coords).addTo(this.#map);
+        marker.bindPopup(L.popup(popupOptions))
             .setPopupContent(`${workout.type === 'cycling' ? '🚴‍♀️' : '🏃‍♂️'}` + workout.description)
             .openPopup();
+
+        this.#popUpCash[workout.id] = marker;
     }
 
     #renderWorkout(workout) {
@@ -179,7 +182,9 @@ class App {
         const type = workout.type;
 
         const htmlMain = `<li class="workout workout--${type}" data-id="${workout.id}">
-          <h2 class="workout__title">${workout.description}</h2>
+          <h2 class="workout__title">${workout.description}
+          <button class="remove">Remove</button>
+          </h2>
           <div class="workout__details">
             <span class="workout__icon">${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'
             }</span>
@@ -232,7 +237,7 @@ class App {
 
     #moveToPopUp(e) {
         const workoutEl = e.target.closest(".workout");
-        if (!workoutEl) return;
+        if (!workoutEl || e.target.classList.contains("remove")) return;
         const workout = this.#workouts.find(el => el.id === workoutEl.dataset.id);
         this.#map.setView(workout.coords, this.#mapZoom, {
             animate: true,
@@ -240,6 +245,24 @@ class App {
                 duation: 1
             }
         });
+    }
+
+    #removeRecord(e) {
+        const removeBtn = e.target.closest(".remove");
+        if (!removeBtn) return;
+        const htmlElement = removeBtn.closest("li.workout");
+        const confirm = window.confirm(`Are you sure you want to remove the workout with id=${htmlElement.dataset.id}`)
+        if (confirm) {
+            htmlElement.remove();
+            const workout = this.#workouts.find(workout => workout.id === htmlElement.dataset.id);
+            const index = this.#workouts.indexOf(workout);
+            this.#map.removeLayer(this.#popUpCash[workout.id]);
+            this.#workouts.splice(index, 1);
+            this.#setLocalStorage();
+
+            // location.reload();
+        }
+
     }
 
     #setLocalStorage() {
@@ -251,7 +274,6 @@ class App {
         if (!data) return;
 
         this.#workouts = JSON.parse(data);
-        console.log(this.#workouts);
         this.#workouts.forEach(workout => {
             this.#renderWorkout(workout);
             if (workout.type === "cycling") {
@@ -269,5 +291,3 @@ class App {
 
 }
 const app = new App();
-
-
