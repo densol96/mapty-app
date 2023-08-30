@@ -66,6 +66,7 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 const inputs = [inputDistance, inputDuration, inputCadence, inputElevation];
+const removeAllBtn = document.querySelector(".remove-all");
 
 class App {
     #map;
@@ -86,6 +87,7 @@ class App {
         containerWorkouts.addEventListener("click", this.#moveToPopUp.bind(this));
         containerWorkouts.addEventListener("click", this.#removeRecord.bind(this));
         containerWorkouts.addEventListener("click", this.#editRecord.bind(this));
+        removeAllBtn.addEventListener("click", this.#removeAll.bind(this));
     }
 
     #getPosition() {
@@ -325,6 +327,10 @@ class App {
         });
     }
 
+    #removeAll() {
+        this.#workouts = [];
+        this.reset();
+    }
     reset() {
         localStorage.removeItem("workouts");
         location.reload();
