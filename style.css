@@ -222,12 +222,43 @@ a:visited {
   border-left: 5px solid var(--color-brand--1);
 }
 
-li.workout--cycling button {
-  margin-left: 23%;
-  padding: 5px 20px;
+
+
+li.workout--cycling button.remove {
+  padding: 0.5em 0.7em;
 }
 
-li.workout--running button {
-  margin-left: 20%;
-  padding: 5px 20px;
+li.workout--cycling button.edit {
+  margin-left: 12%;
+  padding: 0.5em 0.7em;
+}
+
+li.workout--running button.remove {
+  padding: 0.5em 0.7em;
+
+}
+
+li.workout--running button.edit {
+  margin-left: 10%;
+  padding: 0.5em 0.7em;
+}
+
+.copyright {
+  margin-top: 0;
+}
+
+p button {
+  margin-bottom: 5px;
+}
+
+.remove-all {
+  padding: 0.5em 0.7em;
+}
+
+.sort {
+  padding: 0.5em 0.7em;
+}
+
+.sidebar {
+  padding-bottom: 1.3rem;
 }

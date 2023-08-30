@@ -72,7 +72,7 @@ class App {
     #mapZoom = 13;
     #mapEvent;
     #workouts = [];
-    #popUpCash = {}
+    #popUpCash = {};
 
     constructor() {
         // Get user's position
@@ -85,6 +85,7 @@ class App {
         inputType.addEventListener("change", this.#togleElevationField);
         containerWorkouts.addEventListener("click", this.#moveToPopUp.bind(this));
         containerWorkouts.addEventListener("click", this.#removeRecord.bind(this));
+        containerWorkouts.addEventListener("click", this.#editRecord.bind(this));
     }
 
     #getPosition() {
@@ -183,6 +184,7 @@ class App {
 
         const htmlMain = `<li class="workout workout--${type}" data-id="${workout.id}">
           <h2 class="workout__title">${workout.description}
+          <button class="edit">Edit</button>
           <button class="remove">Remove</button>
           </h2>
           <div class="workout__details">
@@ -238,6 +240,7 @@ class App {
     #moveToPopUp(e) {
         const workoutEl = e.target.closest(".workout");
         if (!workoutEl || e.target.classList.contains("remove")) return;
+        form.classList.add("hidden");
         const workout = this.#workouts.find(el => el.id === workoutEl.dataset.id);
         this.#map.setView(workout.coords, this.#mapZoom, {
             animate: true,
@@ -250,19 +253,57 @@ class App {
     #removeRecord(e) {
         const removeBtn = e.target.closest(".remove");
         if (!removeBtn) return;
-        const htmlElement = removeBtn.closest("li.workout");
-        const confirm = window.confirm(`Are you sure you want to remove the workout with id=${htmlElement.dataset.id}`)
+        const htmlRemElement = removeBtn.closest("li.workout");
+        const confirm = window.confirm(`Are you sure you want to remove the workout with id=${htmlRemElement.dataset.id}`)
         if (confirm) {
-            htmlElement.remove();
-            const workout = this.#workouts.find(workout => workout.id === htmlElement.dataset.id);
+            htmlRemElement.remove();
+            const workout = this.#workouts.find(workout => workout.id === htmlRemElement.dataset.id);
             const index = this.#workouts.indexOf(workout);
             this.#map.removeLayer(this.#popUpCash[workout.id]);
             this.#workouts.splice(index, 1);
             this.#setLocalStorage();
-
-            // location.reload();
         }
+    }
 
+    #editRecord(e) {
+        const editBtn = e.target.closest(".edit");
+        if (!editBtn) return;
+        const htmlBtnEl = editBtn.closest("li.workout");
+        const workout = this.#workouts.find(workout => workout.id === htmlBtnEl.dataset.id);
+        const newDistance = +prompt("Enter new distance:");
+        if (!newDistance) return;
+        const newDuration = +prompt("Enter new duration:");
+        if (!newDuration) return;
+        let newCadence, newElevation;
+        let isRun = false;
+
+        if (htmlBtnEl.classList.contains("workout--running")) {
+            newCadence = +prompt("Enter new cadence:");
+            if (!this.#validateInput(newDistance, newDuration, newCadence)) return alert(`Provided input is invalid!`);
+            workout.cadence = newCadence;
+            isRun = true;
+        } else {
+            newElevation = +prompt("Enter new elevation:");
+            if (!this.#validateInput(newDistance, newDuration, newElevation)) return alert(`Provided input is invalid!`);
+            workout.elevation = newElevation;
+        }
+        workout.distance = +newDistance;
+        workout.duration = +newDuration;
+
+        const fields = htmlBtnEl.querySelectorAll(".workout__value");
+
+        fields[0].textContent = workout.distance;
+        fields[1].textContent = workout.duration;
+        if (isRun) {
+            workout.calcPace();
+            fields[2].textContent = workout.pace;
+            fields[3].textContent = workout.cadence;
+        } else {
+            workout.calcSpeed();
+            fields[2].textContent = workout.speed;
+            fields[3].textContent = workout.elevation;
+        }
+        this.#setLocalStorage();
     }
 
     #setLocalStorage() {
