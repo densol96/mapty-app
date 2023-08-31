@@ -19,10 +19,6 @@ class Workout {
         const dayDate = this.date.getDate();
         this.description = `${firstLetter + theRest} on ${monthString} ${dayDate}`;
     }
-
-    test() {
-        console.log(`Hello!`);
-    }
 }
 
 class Running extends Workout {
