@@ -67,6 +67,7 @@ const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 const inputs = [inputDistance, inputDuration, inputCadence, inputElevation];
 const removeAllBtn = document.querySelector(".remove-all");
+const sortBtn = document.querySelector(".sort");
 
 class App {
     #map;
@@ -74,6 +75,8 @@ class App {
     #mapEvent;
     #workouts = [];
     #popUpCash = {};
+    #sortedWorkouts = [];
+    #sortedStatus = false;
 
     constructor() {
         // Get user's position
@@ -88,6 +91,8 @@ class App {
         containerWorkouts.addEventListener("click", this.#removeRecord.bind(this));
         containerWorkouts.addEventListener("click", this.#editRecord.bind(this));
         removeAllBtn.addEventListener("click", this.#removeAll.bind(this));
+        sortBtn.addEventListener("click", this.#sortWorkouts.bind(this));
+
     }
 
     #getPosition() {
@@ -328,13 +333,30 @@ class App {
     }
 
     #removeAll() {
-        this.#workouts = [];
         this.reset();
     }
+
+    #sortWorkouts() {
+        this.#clearWorkoutsList();
+        if (this.#sortedStatus == false) {
+            console.log(this.#sortedWorkouts);
+            this.#sortedWorkouts = this.#workouts.toSorted((a, b) => a.distance - b.distance);
+            this.#sortedWorkouts.forEach(workout => this.#renderWorkout(workout));
+            this.#sortedStatus = true;
+        } else {
+            this.#workouts.forEach(workout => this.#renderWorkout(workout));
+            this.#sortedStatus = false;
+        }
+    }
+
+    #clearWorkoutsList() {
+        const workouts = document.querySelectorAll("ul.workouts li.workout");
+        workouts.forEach(workout => workout.remove());
+    }
+
     reset() {
         localStorage.removeItem("workouts");
         location.reload();
     }
-
 }
 const app = new App();
